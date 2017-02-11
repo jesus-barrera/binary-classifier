@@ -1,0 +1,240 @@
+<Container@GridLayout>:
+	cols: 1
+	padding: [30, 30]
+
+<Container_Two_Cols@GridLayout>:
+	cols: 2
+	spacing: (10, 0)
+	size_hint_y: None
+
+<GridSpaceColumn@GridLayout>:
+	cols: 2
+	row_force_default: True
+	row_default_height: 40
+	size_hint_y: None
+
+<HeaderLabel@Label>:
+	font_size: 20
+	size_hint_y: None
+
+
+<MainWidget>:
+	id: main_widget
+	do_default_tab: False
+	tab_width: self.width / 3
+
+	# First Panel
+	TabbedPanelItem:
+		id: tab_1
+		text: 'Entrenamiento'
+
+		Container:
+			Container_Two_Cols:
+
+				GridSpaceColumn:
+					Label: 
+						text: 'Clase 1'
+						size_hint_x: None
+					TextInput:
+						id: txt_class_1
+						multiline: False
+						hint_text: 'Nombre'
+						on_text: main_widget.change_class_name(1, txt_class_1.text)
+
+				GridSpaceColumn:
+					Label: 
+						text: 'Clase 2'
+						size_hint_x: None
+					TextInput:
+						id: txt_class_2
+						multiline: False
+						hint_text: 'Nombre'
+						on_text: main_widget.change_class_name(2, txt_class_2.text)
+
+
+				GridSpaceColumn:
+					cols: 1
+					spacing: (10, 0)
+
+					GridSpaceColumn:
+						Label:
+							text: 'Clase 1'
+							size_hint_x: None
+						Label:
+							id: label_left_training_path
+							text: ''
+					Button:
+						text: 'Cargar'
+						on_release: main_widget.open_load_popup('left', 'image_folder')
+
+				GridSpaceColumn:
+					cols: 1
+					spacing: (10, 0)
+
+					GridSpaceColumn:
+						Label:
+							text: 'Clase 2'
+							size_hint_x: None
+						Label:
+							id: label_right_training_path
+							text: ''
+					Button:
+						text: 'Cargar'
+						on_release: main_widget.open_load_popup('right', 'image_folder')
+
+
+				GridSpaceColumn:
+					spacing: (10, 15)
+					padding: [0, 15]
+
+					Label: 
+						text: 'Error meta'
+						size_hint_x: None
+					TextInput:
+						id: txt_min_error
+						multiline: False
+						hint_text: 'Ej: 0.5'
+
+				GridSpaceColumn:
+					spacing: (10, 15)
+					padding: [0, 15]
+
+					Label: 
+						text: 'Arquitectura'
+						size_hint_x: None
+					TextInput:
+						id: txt_architecture
+						multiline: False
+						hint_text: 'num_entradas, [num_neuronas_capa1, ... , num_neuronas_capaN]'
+
+
+				GridSpaceColumn:
+					#Blankspace
+				GridSpaceColumn:
+					spacing: (10, 0)
+
+					Button:
+						text: 'Salir'
+						on_release: app.stop()
+					Button:
+						text: 'Entrenar'
+						on_release: main_widget.training()
+
+			
+	# Second Panel
+	TabbedPanelItem:
+		id: tab_2
+		text: 'Curva ROC'
+
+		Container:
+			Container_Two_Cols: 
+
+				GridSpaceColumn:
+					cols: 1
+
+					HeaderLabel: 
+						id: class_name_1
+						text: 'Name class_1'
+
+				GridSpaceColumn:
+					cols: 1
+
+					HeaderLabel: 
+						id: class_name_2
+						text: 'Name class_2'
+
+
+				GridSpaceColumn:
+					cols: 1
+					spacing: (10, 0)
+
+					GridSpaceColumn:
+						Label:
+							text: 'Pruebas'
+							size_hint_x: None
+						Label:
+							id: label_left_test_path
+							text: ''
+					Button:
+						text: 'Cargar'
+						on_release: main_widget.open_load_popup('left', 'test_folder')
+
+				GridSpaceColumn:
+					cols: 1
+					spacing: (10, 0)
+
+					GridSpaceColumn:
+						Label:
+							text: 'Pruebas'
+							size_hint_x: None
+						Label:
+							id: label_right_test_path
+							text: ''
+					Button:
+						text: 'Cargar'
+						on_release: main_widget.open_load_popup('right', 'test_folder')
+
+				GridSpaceColumn:
+				#Blankspace
+
+				GridSpaceColumn:
+					cols: 1
+					padding: [0, 100]
+
+					Button:
+						text: 'Evaluar'
+						on_release: main_widget.evaluate_mlp()
+
+	
+	# Third Panel
+	TabbedPanelItem:
+		id: tab_3
+		text: 'Pruebas'
+		
+
+		Container:
+			Container_Two_Cols:
+				spacing: (0, 20)
+				row_default_height: 200
+				row_force_default: True
+				col_default_width: 200
+				col_force_default: True
+
+				Image:
+					id: image_box
+
+				GridSpaceColumn:
+					spacing: (0, 10)
+					row_default_height: 100
+					row_force_default: True
+					padding: [20, 0]
+
+					Label:
+						text: 'Resultado'
+						size_hint_x: None
+					Label:
+						id: label_result
+						text: '--- Resultado ---'
+
+					Label:
+						text: 'Clase'
+						size_hint_x: None
+					Label:
+						id: label_fit_class
+						text: '--- Clase X ---'
+
+				GridSpaceColumn:
+					cols: 1
+					spacing: (0, 10)
+
+					Button:
+						text: 'Cargar prueba'
+						on_release: main_widget.open_load_popup('right', 'test_image')
+
+					Button:
+						text: 'Probar'
+						on_release: main_widget.test_image()
+
+					Button:
+						text: 'Reiniciar MLP'
+						on_release: main_widget.reset_mlp()
