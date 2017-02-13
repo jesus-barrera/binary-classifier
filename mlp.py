@@ -1,95 +1,151 @@
+# -*- coding: utf-8 -*-
+import sys
 import numpy as np
 
 class MultiLayerPerceptron:
-    def __init__(self, input_size, shape):
-        self.shape = shape
-        self.input_size = input_size
-        self.outputs_array = []
-        self.weights_array = []
-        self.activation_values = []
+    def __init__(self, shape):
+        self._shape = shape
+        self._outputs_array = []
+        self._weights_array = []
+        self._net_values = []
 
-        # initialize weights
-        self.add_layer(self.shape[0], input_size)
+        # input layer
+        self._weights_array.append(np.zeros(0)) # no weights
+        self._net_values.append(np.zeros(0))    # nor net values
 
-        for i in xrange(1, len(shape)):
-            self.add_layer(self.shape[i], self.shape[i - 1])
+        # network input
+        inputs = np.zeros(self._shape[0] + 1)
+        inputs[0] = -1  # constant input -1 for threshold
+        self._outputs_array.append(inputs)
 
-        # initialize outputs
-        for i, neurons in enumerate(shape):
-            self.outputs_array.append(np.zeros(neurons))
-            self.activation_values.append(np.zeros(neurons))
+        # hidden layers
+        for layer in xrange(1, len(self._shape)):
+            # initialize weights
+            neurons = self._shape[layer]
+            inputs = self._shape[layer - 1] + 1 # threshold
+            weights = np.random.rand(neurons * inputs).reshape((neurons, inputs))
+            self._weights_array.append(weights)
 
-    def add_layer(self, neurons, input_size):
-        weights = np.random.random((neurons, input_size + 1))
-        self.weights_array.append(weights)
+            # initialize outputs
+            outputs = np.zeros(neurons + 1)
+            outputs[0] = -1
+            self._outputs_array.append(outputs)
+
+            # initialize net values
+            nets = np.zeros(neurons)
+            self._net_values.append(nets)
 
     def train(
             self,
             training_set,
-            learning_rate=0.1,
-            min_error=0.1):
+            learning_rate,
+            max_epochs,
+            min_error):
 
-        done = False
+        converged = False
+        epochs = 0
 
-        for i in range(200):
-            for inputs, output in training_set:
-                self.feed_forward(inputs)
+        while epochs < max_epochs and not converged:
+            total_error = 0
 
-                error = output - self.outputs_array[:-1]
-                self.back_propagation(output, learning_rate)
+            for inputs, desired in training_set:
+                # feed feed forward
+                self._feed_forward(inputs)
 
-    def feed_forward(self, inputs):
-        # compute first layer outputs
-        first_layer, = self.shape
-        self.compute_layer_outputs(first_layer, inputs)
+                # compute error
+                error = desired - self._outputs_array[-1][1:]
+                total_error += error.dot(error) / 2
 
-        for layer in xrange(1, len(self.shape)):
-            self.compute_layer_outputs(layer, self.outputs[layer - 1])
+                # back propagation
+                self._back_propagation(error, learning_rate)
 
-    def compute_layer_outputs(self, layer, inputs):
-        for neuron in range(self.shape[layer]):
-            # set output
-            value = np.dot(inputs, self.weights_array[layer][neuron])
-            self.outputs_array[layer][neuron] = self.sigmoid(value)
+            epochs += 1
+            total_error /= len(training_set)
 
-            # save activation value
-            self.activation_values[layer][neuron] = value
+            if total_error <= min_error:
+                converged = True
 
-    def back_propagation(self, error, learning_rate):
-        sensibilities = []
+        return converged, epochs
 
-        # last layer sensibility
-        a = self.diff_sigmoid(self.activation_values[0])
-        a = np.diag(a)
+    def _feed_forward(self, inputs):
+        self._outputs_array[0][1:] = inputs
 
-        s = -2 * np.dot(a, error)
+        for layer in xrange(1, len(self._shape)):
+            # previous layer outpus are current layer inputs
+            inputs = self._outputs_array[layer - 1]
 
-        self.weights_array[:-1] += -self.learning_rate * np.dot(s, self.outputs[:-2])
+            # activation values
+            self._net_values[layer] = self._weights_array[layer].dot(inputs)
 
-        sensibilities.append(s)
+            # compute outputs using activation function
+            outputs = self._sigmoid(self._net_values[layer])
+            self._outputs_array[layer][1:] = outputs # keep threshold input
 
-        for layer in reversed(range(len(self.shape) - 1)):
-            # last layer sensibility
-            a = self.diff_sigmoid(self.activation_values[layer])
-            a = np.diag(a)
+    def _back_propagation(self, error, learning_rate):
+        sensibilities = [0] * len(self._shape)
 
-            s = np.dot(a, self.weights_array[layer + 1].T)
-            s = np.dot()
+        # output layer
+        outputs = self._outputs_array[-1][1:]
+        derivative = outputs * (1 - outputs)
+        sensibility = derivative * error
+        sensibility = sensibility.reshape((sensibility.size, 1))
 
-            self.weights_array[-1] += -self.learning_rate * np.dot(s, self.outputs[-2])
+        inputs = self._outputs_array[-2]
+        inputs = inputs.reshape((1, inputs.size))
 
-            sensibilities.append(s)
+        self._weights_array[-1] += learning_rate * sensibility.dot(inputs)
+
+        sensibilities[-1] = sensibility
+
+        # hidden layers
+        for layer in reversed(xrange(1, len(self._shape) - 1)):
+            next_layer = layer + 1
+            outputs = self._outputs_array[layer][1:]
+            derivative = outputs * (1 - outputs)
+            derivative = np.diag(derivative)
+
+            weights = self._weights_array[next_layer][:,1:]
+
+            sensibility = weights.T.dot(sensibilities[next_layer])
+            sensibility = derivative.dot(sensibility)
+
+
+            inputs = self._outputs_array[layer - 1]
+            inputs = inputs.reshape((1, inputs.size))
+
+            self._weights_array[layer] += learning_rate * sensibility.dot(inputs)
+
+            sensibilities[layer] = sensibility
 
     def test(self, inputs):
-        self.feed_forward(inputs)
+        self._feed_forward(inputs)
 
-        return self.activation_values[:-1]
+        return self._net_values[-1]
 
-    def sigmoid(self, value):
+    def _sigmoid(self, value):
         return 1 / (1 + np.exp(-value))
 
-    def diff_sigmoid(self, value):
-        return self.sigmoid(value) * (1 - self.sigmoid(value))
-
 if __name__ == '__main__':
-    mlp = MultiLayerPerceptron(3, (5, 5))
+    mlp = MultiLayerPerceptron((2, 3, 1))
+
+    training_set = [
+        (np.array([0, 0]), np.array([0])),
+        (np.array([0, 1]), np.array([1])),
+        (np.array([1, 1]), np.array([0])),
+        (np.array([1, 0]), np.array([1]))]
+
+    converged, epochs = mlp.train(
+            training_set,
+            0.3,
+            20000,
+            0.01)
+
+    if converged:
+        print u'La red convergió en {} épocas'.format(epochs)
+
+        print 'Test (0,0) =', mlp.test(np.array([0, 0]))
+        print 'Test (1,0) =', mlp.test(np.array([1, 0]))
+        print 'Test (1,1) =', mlp.test(np.array([1, 1]))
+        print 'Test (0,1) =', mlp.test(np.array([0, 1]))
+    else:
+        print 'La red no convergió'
