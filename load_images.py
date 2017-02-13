@@ -2,15 +2,17 @@ from PIL import Image
 import numpy as np
 
 def Image_To_Npy_Array(image):
-	npArray = np.zeros((image.size[0] * image.size[1]))
+	npArray = np.zeros(image.size[0] * image.size[1])
 	pix = image.load()
 
 	for x in range (image.size[0]):
 		for y in range (image.size[1]):
+			pos = (x * image.size[1]) + y
+
 			if pix[x, y][0] == 255:
-				npArray[(x*image.size[1])] = 1
+				npArray[pos] = 1
 			else:
-				npArray[(x*image.size[1])] = 0
+				npArray[pos] = 0
 
 	return npArray
 
@@ -35,8 +37,7 @@ def Load_Image(path):
 
 def main():
 	path_image = 'Pinguinos.jpg'
-	numpy_vector = Load_Image(path_image)	
+	numpy_vector = Load_Image(path_image)
 
 if __name__ == '__main__':
 	main()
-
