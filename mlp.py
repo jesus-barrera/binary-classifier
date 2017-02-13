@@ -23,7 +23,7 @@ class MultiLayerPerceptron:
             # initialize weights
             neurons = self._shape[layer]
             inputs = self._shape[layer - 1] + 1 # threshold
-            weights = np.random.rand(neurons * inputs).reshape((neurons, inputs))
+            weights = 2 * np.random.rand(neurons * inputs).reshape((neurons, inputs)) -1 # in (-1, 1)
             self._weights_array.append(weights)
 
             # initialize outputs
@@ -71,7 +71,7 @@ class MultiLayerPerceptron:
         self._outputs_array[0][1:] = inputs
 
         for layer in xrange(1, len(self._shape)):
-            # previous layer outpus are current layer inputs
+            # previous layer outputs are current layer inputs
             inputs = self._outputs_array[layer - 1]
 
             # activation values
@@ -138,7 +138,7 @@ if __name__ == '__main__':
             training_set,
             0.3,
             20000,
-            0.01)
+            0.005)
 
     if converged:
         print u'La red convergió en {} épocas'.format(epochs)
