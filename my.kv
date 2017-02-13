@@ -32,7 +32,7 @@
 			Container_Two_Cols:
 
 				GridSpaceColumn:
-					Label: 
+					Label:
 						text: 'Clase 1'
 						size_hint_x: None
 					TextInput:
@@ -42,7 +42,7 @@
 						on_text: main_widget.change_class_name(1, txt_class_1.text)
 
 				GridSpaceColumn:
-					Label: 
+					Label:
 						text: 'Clase 2'
 						size_hint_x: None
 					TextInput:
@@ -87,26 +87,27 @@
 					spacing: (10, 15)
 					padding: [0, 15]
 
-					Label: 
+					Label:
 						text: 'Error meta'
 						size_hint_x: None
 					TextInput:
 						id: txt_min_error
 						multiline: False
-						hint_text: 'Ej: 0.5'
+						hint_text: 'Ej: 0.01'
+						text: '0.01'
 
 				GridSpaceColumn:
 					spacing: (10, 15)
 					padding: [0, 15]
 
-					Label: 
+					Label:
 						text: 'Arquitectura'
 						size_hint_x: None
 					TextInput:
 						id: txt_architecture
 						multiline: False
-						hint_text: 'num_entradas, [num_neuronas_capa1, ... , num_neuronas_capaN]'
-
+						hint_text: 'num_entradas,num_neuronas_capa1,...,num_neuronas_salida'
+						text: '400,2,1'
 
 				GridSpaceColumn:
 					#Blankspace
@@ -120,26 +121,26 @@
 						text: 'Entrenar'
 						on_release: main_widget.training()
 
-			
+
 	# Second Panel
 	TabbedPanelItem:
 		id: tab_2
 		text: 'Curva ROC'
 
 		Container:
-			Container_Two_Cols: 
+			Container_Two_Cols:
 
 				GridSpaceColumn:
 					cols: 1
 
-					HeaderLabel: 
+					HeaderLabel:
 						id: class_name_1
 						text: 'Name class_1'
 
 				GridSpaceColumn:
 					cols: 1
 
-					HeaderLabel: 
+					HeaderLabel:
 						id: class_name_2
 						text: 'Name class_2'
 
@@ -185,12 +186,12 @@
 						text: 'Evaluar'
 						on_release: main_widget.evaluate_mlp()
 
-	
+
 	# Third Panel
 	TabbedPanelItem:
 		id: tab_3
 		text: 'Pruebas'
-		
+
 
 		Container:
 			Container_Two_Cols:
@@ -210,7 +211,7 @@
 					padding: [20, 0]
 
 					Label:
-						text: 'Resultado'
+						text: ''
 						size_hint_x: None
 					Label:
 						id: label_result
