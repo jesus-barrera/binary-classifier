@@ -88,6 +88,37 @@
 					padding: [0, 15]
 
 					Label:
+						text: 'Arquitectura'
+						size_hint_x: None
+					TextInput:
+						id: txt_architecture
+						multiline: False
+						hint_text: 'num_entradas,num_neuronas_capa1,...,num_neuronas_salida'
+						text: '400,2,1'
+
+					Label:
+						text: 'Epocas'
+						size_hint_x: None
+					TextInput:
+						id: txt_eponchs
+						multiline: False
+						text: '1000'
+						hint_text: 'Ej: 1000'
+
+				GridSpaceColumn:
+					spacing: (10, 15)
+					padding: [0, 15]
+
+					Label:
+						text: 'R. de aprendizaje'
+						size_hint_x: None
+					TextInput:
+						id: txt_learning_rate
+						multiline: False
+						text: '0.01'
+						hint_text: 'Ej: 0.01'
+
+					Label:
 						text: 'Error meta'
 						size_hint_x: None
 					TextInput:
@@ -97,22 +128,10 @@
 						text: '0.01'
 
 				GridSpaceColumn:
-					spacing: (10, 15)
-					padding: [0, 15]
-
-					Label:
-						text: 'Arquitectura'
-						size_hint_x: None
-					TextInput:
-						id: txt_architecture
-						multiline: False
-						hint_text: 'num_entradas,num_neuronas_capa1,...,num_neuronas_salida'
-						text: '400,2,1'
-
-				GridSpaceColumn:
 					#Blankspace
 				GridSpaceColumn:
 					spacing: (10, 0)
+					padding: [0, 40]
 
 					Button:
 						text: 'Salir'
