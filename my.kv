@@ -195,7 +195,28 @@
 						on_release: main_widget.open_load_popup('right', 'test_folder')
 
 				GridSpaceColumn:
-				#Blankspace
+					padding: [0, 20]
+
+					Label:
+						text: 'Especificidad'
+						size_hint_x: None
+					Label:
+						id: label_especificity
+						text: '--- Valor --- '
+
+					Label:
+						text: 'Sensibilidad'
+						size_hint_x: None
+					Label:
+						id: label_sensibility
+						text: '--- Valor --- '
+
+					Label:
+						text: 'AUC'
+						size_hint_x: None
+					Label:
+						id: label_auc
+						text: '--- Valor --- '
 
 				GridSpaceColumn:
 					cols: 1
