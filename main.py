@@ -1,8 +1,10 @@
 import os
+import matplotlib.pyplot as plt
 import numpy as np
 from functools import partial
 from load_images import Load_Image
 from mlp import MultiLayerPerceptron
+from roc import ROC
 
 from kivy.app import App
 from kivy.uix.popup import Popup
@@ -15,7 +17,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.filechooser import FileChooserListView, FileChooserIconView
 from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelHeader
 
-Window.size = (700, 450)
+Window.size = (700, 470)
 
 class MainWidget(TabbedPanel):
 	_ListTrainingPictureClass1 = []
@@ -111,9 +113,9 @@ class MainWidget(TabbedPanel):
 				label = self.ids['label_' + str(side) + '_test_path']
 
 				if side == 'left':
-					self._ListTrainingPictureClass1 = image_list
+					self._ListEvaluationPictureClass1 = image_list
 				else:
-					self._ListTrainingPictureClass2 = image_list
+					self._ListEvaluationPictureClass2 = image_list
 
 			label.text = os.path.basename(path[0]) + ' -> ' + str(len(image_list)) + ' imagenes'
 
@@ -147,11 +149,11 @@ class MainWidget(TabbedPanel):
 		# Image proccesing
 		for image in self._ListEvaluationPictureClass1:
 			vector = Load_Image(image)
-			evaluation_set.append(vector)
+			evaluation_set.append((vector, 1))
 
 		for image in self._ListEvaluationPictureClass2:
 			vector = Load_Image(image)
-			evaluation_set.append(vector)
+			evaluation_set.append((vector, 0))
 
 		return evaluation_set
 
@@ -162,24 +164,25 @@ class MainWidget(TabbedPanel):
 	def training(self):
 		txt_architecture = self.ids['txt_architecture']
 		txt_min_error = self.ids['txt_min_error']
+		txt_epochs = self.ids['txt_epochs']
+		txt_learning_rate = self.ids['txt_learning_rate']
 
 		# Add elements to the MLP and training
 		min_error = float(txt_min_error.text)
-
 		architecture = txt_architecture.text.split(',')
 		architecture = map(int, architecture)
+		max_epochs = int(txt_epochs.text)
+		learning_rate = float(txt_learning_rate.text)
 
 		self.mlp = MultiLayerPerceptron(architecture)
-
 
 		training_set = self.create_training_set()
 
 		converged, epochs = self.mlp.train(
 				training_set,
-				0.2,
-				1000,
+				learning_rate,
+				max_epochs,
 				min_error)
-
 
 		if converged:
 			print 'Converged in {} epochs'.format(epochs)
@@ -189,14 +192,66 @@ class MainWidget(TabbedPanel):
 		self.go_to_tab(2)
 
 	def evaluate_mlp(self):
-		evaluation_set = self.create_evaluation_set()
+		especificity = 0
+		sensibility = 0
 
-		print evaluation_set
+		total_positives = len(self._ListEvaluationPictureClass1)
+		total_negatives = len(self._ListEvaluationPictureClass2)
 
-		#self.my_mlp.evualuation(evaluation_set)
-		#self.plot_roc_curve(self.my_mlp)
+		true_negatives = 0
+		true_positives = 0
 
-		self.go_to_tab(3)
+		especificities = [0]
+		sensibilities = [0]
+
+		for image in self._ListEvaluationPictureClass1:
+			print 'Probando {}'.format(image)
+
+			vector = Load_Image(image)
+
+			result = self.mlp.test(vector)[0]
+
+			print 'Resultado {}'.format(result)
+
+
+			if result == 1:
+				true_positives += 1
+
+			sensibilities.append(float(true_positives)/total_positives)
+
+		for image in self._ListEvaluationPictureClass2:
+			print 'Probando {}'.format(image)
+
+			vector = Load_Image(image)
+
+			result = self.mlp.test(vector)[0]
+
+			print 'Resultado {}'.format(result)
+
+			if result == 0:
+				true_negatives +=1
+
+			especificities.append(float(true_negatives)/total_negatives)
+
+		sensibility = sensibilities[-1]
+		especificity = especificities[-1]
+
+		self.ids['label_especificity'].text = str(especificity)
+		self.ids['label_sensibility'].text = str(sensibility)
+		self.ids['label_auc'].text = str(0)
+
+		especificities.append(1)
+		sensibilities.append(1)
+
+		# plot ROC curve
+		roc = ROC()
+		roc.plot(especificities, sensibilities)
+
+		plt.show()
+
+		plt.clf()
+		plt.cla()
+		plt.close()
 
 	def test_image(self):
 		image_box = self.ids['image_box']
@@ -213,9 +268,9 @@ class MainWidget(TabbedPanel):
 
 		label_result.text = str(result[0])
 
-		if result >= 0:
+		if result == 1:
 			label_fit_class.text = self.ids['class_name_1'].text
-		elif result < 1:
+		elif result == 0:
 			label_fit_class.text = self.ids['class_name_2'].text
 
 	''' Function to reset application '''
