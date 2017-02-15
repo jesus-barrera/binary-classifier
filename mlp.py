@@ -126,12 +126,6 @@ class MultiLayerPerceptron:
         sensibility = derivative * error
         sensibility = sensibility.reshape((sensibility.size, 1))
 
-        # Adjust weights
-        inputs = self._outputs_array[-2]
-        inputs = inputs.reshape((1, inputs.size))
-
-        self._weights_array[-1] += learning_rate * sensibility.dot(inputs)
-
         sensibilities[-1] = sensibility
 
         for layer in reversed(xrange(1, len(self._shape) - 1)):
@@ -148,13 +142,16 @@ class MultiLayerPerceptron:
             sensibility = weights.T.dot(sensibilities[next_layer])
             sensibility = derivative.dot(sensibility)
 
-            # Adjust weights
+            sensibilities[layer] = sensibility
+
+        # Adjust weights
+        for layer in xrange(1, len(self._shape)):
             inputs = self._outputs_array[layer - 1]
             inputs = inputs.reshape((1, inputs.size))
 
-            self._weights_array[layer] += learning_rate * sensibility.dot(inputs)
+            sensibility = sensibilities[layer]
 
-            sensibilities[layer] = sensibility
+            self._weights_array[layer] += learning_rate * sensibility.dot(inputs)
 
     def test(self, inputs, discretize=True):
         '''Test the neural network with a given input.
